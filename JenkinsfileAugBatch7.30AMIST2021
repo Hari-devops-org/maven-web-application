@@ -1,40 +1,96 @@
-node
-{
-  
-  def mavenHome = tool name: "maven3.6.2"
-  
-  properties([buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', daysToKeepStr: '', numToKeepStr: '5')), pipelineTriggers([pollSCM('* * * * *')])])
-    
-  stage('CheckOutCode'){
-  git branch: 'development', credentialsId: 'dd65bff1-b7fd-4c5b-9bc9-6c274df50095', url: 'https://github.com/MithunTechnologiesDevOps/maven-web-application.git'
-  }
-  
-  stage('Build'){
-  sh "${mavenHome}/bin/mvn clean package"
-  }
-/*
- stage('ExecuteSoanrQubeReport'){
-  sh "${mavenHome}/bin/mvn clean sonar:sonar"
-  }
-  
-  stage('UploadArtifactIntoNexusRepo'){
-  sh "${mavenHome}/bin/mvn clean deploy"
-  }
-  
-  stage('DeploytheAppintoTomcat')
-  {
-  sshagent(['b07d0aa5-2bef-49a7-9d56-940e56b6ba93']) {
- sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@13.233.67.194:/opt/apache-tomcat-9.0.53/webapps"     
-  }
-   }
-  
- */
-  stage('SendEmailNotification'){
-   mail bcc: 'devopstrainingblr@gmail.com', body: '''Build Over !!
+pipeline{
 
-   Regards,
-   Mithun Technologies,
-   9980923226''', cc: 'devopstrainingblr@gmail.com', from: '', replyTo: '', subject: 'Build Over!!', to: 'devopstrainingblr@gmail.com'
-  }
-  
-}//Closing brancket for Node 
+agent any
+
+tools{
+maven "maven3.6.2"
+}
+
+options{
+buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', daysToKeepStr: '', numToKeepStr: '5'))
+
+
+timestamps()
+
+}
+
+triggers{
+//poll SCM
+pollSCM('* * * * *')
+
+//Build periodically
+//cron('* * * * *')
+
+//GitHub WebHook
+//githubPush()
+
+}
+
+stages{
+
+      stage('CheckoutCode'){
+      steps{
+      git branch: 'development', credentialsId: '62c69cd5-3edb-474d-a53d-37ecc46efc3d', url: 'https://github.com/Hari-devops-org/maven-web-application.git'
+      
+      }
+      }
+
+      stage('Build'){
+      steps{
+      sh "mvn clean package"      
+      }
+      }
+
+      stage('ExicuteSpnarqubeReport'){
+      steps{
+       sh "mvn sonar:sonar"
+
+      }
+      }
+   
+      stage ('UploadsArtifactsIntoNexusRepo'){
+      steps{
+      sh "mvn clean deploy"
+      }
+      }
+
+      stage('DeployAppIntoTomcatserver'){
+      steps{
+      sshagent(['a07429b0-6f6f-45fd-baa0-1a230920c05f']) {
+      sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@15.207.106.53:/opt/apache-tomcat-9.0.53/webapps"
+ 
+      }
+      }       
+      }    
+     
+   
+
+}//steps closing
+
+/*
+   post{
+   
+   
+   success{
+   mail bcc: 'haridasuk15@gmail.com', body: '''Build Success.
+
+
+
+   Regard
+   Haridas''', cc: 'haridasuk15@gmail.com', from: '', replyTo: '', subject: 'haridasuk15@gmail.com', to: 'haridasuk15@gmail.com'
+   }
+   
+   failure{
+   mail bcc: 'haridasuk15@gmail.com', body: '''Build Failed.
+
+
+
+  Regard
+  Haridas''', cc: 'haridasuk15@gmail.com', from: '', replyTo: '', subject: 'haridasuk15@gmail.com', to: 'haridasuk15@gmail.com'
+   
+   }
+   
+
+}
+*/
+}//pipeline closing
